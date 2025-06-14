@@ -14,7 +14,7 @@ def verify_webhook(request):
     token = request.query_params.get("hub.verify_token") # Obtiene el token de verificación
     challenge = request.query_params.get("hub.challenge") # Obtiene el desafío de verificación
     if mode and token:
-        if mode == "suscribe" and token == VERIFY_TOKEN:
+        if mode == "subscribe" and token == VERIFY_TOKEN:
             return PlainTextResponse(content=challenge, status_code=200) # Responde con el desafío si la verificación es exitosa
         return PlainTextResponse("Forbidden", status_code=403) # Responde con Forbidden si la verificación falla
 
