@@ -57,5 +57,14 @@ def mensaje_animal_silvestre_final(wa_id:str):
     message = "📞 Gracias por tu reporte. Nuestro equipo evaluará la información y se comunicará contigo si es necesario."
     return send_text_message(wa_id,message)
 
+def mensaje_resultados_laboratorio(wa_id:str):
+    message = "En breve, un miembro del equipo de SIVAT se comunicará contigo para brindarte tus resultados de laboratorio."
+    return send_text_message(wa_id,message)
+
+def mensaje_otro_motivo_7_0(wa_id:str):
+    message = "Por favor, indica brevemente tu consulta. Un miembro de SIVAT se pondrá en contacto contigo."
+    return send_text_message(wa_id,message)
+
+
 def mensaje_debug(wa_id:str, message = str):
     return send_text_message(wa_id, message)

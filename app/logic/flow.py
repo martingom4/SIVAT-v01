@@ -5,7 +5,7 @@ from datetime import datetime
 from app.config import redis_client
 from app.models.redis_model import crear_usuario, actualizar_usuario, obtener_usuario, eliminar_usuario, verificar_usuario
 from app.client.whatsapp_api import send_text_message
-from app.services.message_handler import mensaje_menu, mensaje_fiebre_2_5, mensaje_fiebre_2 ,mensaje_debug, mensaje_fiebre_final, mensaje_animal_domestico_3, mensaje_animal_domestico_3_5, mensaje_animal_domestico_4_0, mensaje_animal_domestico_final, mensaje_animal_silvestre_5_0,mensaje_animal_silvestre_5_5,  mensaje_animal_silvestre_6_0, mensaje_animal_silvestre_final
+from app.services.message_handler import mensaje_menu, mensaje_fiebre_2_5, mensaje_fiebre_2 ,mensaje_debug, mensaje_fiebre_final, mensaje_animal_domestico_3, mensaje_animal_domestico_3_5, mensaje_animal_domestico_4_0, mensaje_animal_domestico_final, mensaje_animal_silvestre_5_0,mensaje_animal_silvestre_5_5,  mensaje_animal_silvestre_6_0, mensaje_animal_silvestre_final, mensaje_resultados_laboratorio,mensaje_otro_motivo_7_0
 
 #posteriormente despues de dar el mensaje de bienvendia hace este paso, donde se recolecta el nombre y la cedula y se guarda en redis
 def paso_0(wa_id, texto):
@@ -42,13 +42,16 @@ def paso_1(wa_id, texto):
         mensaje_animal_silvestre_5_0(wa_id)
         return {"status": "ok", "message": "Animal silvestre registrado, solicitando descripción."}
     elif texto == "4":
-        actualizar_usuario.hset(wa_id, "paso", 14)
-        return send_text_message(wa_id, "🧪 En breve, un miembro del equipo se comunicará contigo.")
+        mensaje_resultados_laboratorio(wa_id)
+        return {"status": "ok", "message": "Resultados de laboratorio solicitados."}
+
     elif texto == "5":
-        actualizar_usuario.hset(wa_id, "paso", 15)
-        return send_text_message(wa_id, "📝 Por favor, indica brevemente tu consulta.")
+        actualizar_usuario(redis_client, wa_id, paso=7.0)
+        mensaje_otro_motivo_7_0(wa_id)
+        return {"status": "ok", "message": "Otro motivo registrado, solicitando consulta."}
     else:
-        return send_text_message(wa_id, "Por favor, elige una opción del 1 al 5.")
+        send_text_message(wa_id, "Por favor, elige una opción del 1 al 5.")
+        return {"status": "error", "message": "Opción inválida. Por favor, ingresa una opción válida."}
 
 def paso_2(wa_id, texto):
     try:
@@ -177,11 +180,26 @@ def paso_6(wa_id, texto):
 
         otros_animales = "Sí" if texto == "sí" else "No" # convertimos de texto a booleano
         actualizar_usuario(redis_client, wa_id, otros_animales=otros_animales)
-        mensaje_animal_domestico_final(wa_id)
+        mensaje_animal_silvestre_final(wa_id)
+
          # Enviamos el mensaje final y eliminamos al usuario
         eliminar_usuario(redis_client, wa_id)  # Eliminar usuario después de completar el flujo
         return {"status": "ok", "message": "Información registrada y usuario eliminado."}
 
+    except Exception as e:
+        print(f"❌ Error al procesar la respuesta: {e}")
+        return {"status": "error", "message": str(e)}
+
+def paso_7_0(wa_id, texto ):
+    try:
+        texto = texto.strip()
+        if not texto:
+            mensaje_debug(wa_id, "❌ No se ingresó la consulta. Por favor, intenta nuevamente.")
+            return {"status": "error", "message": "No se ingresó la consulta"}
+        actualizar_usuario(redis_client, wa_id, consulta_libre=texto)
+         # Enviamos el mensaje final y eliminamos al usuario
+        mensaje_debug(wa_id, "Gracias por la informacion, un miembro del equipo SIVAT se pondrá en contacto contigo.")
+        eliminar_usuario(redis_client, wa_id)  # Eliminar usuario después de completar el flujo
     except Exception as e:
         print(f"❌ Error al procesar la respuesta: {e}")
         return {"status": "error", "message": str(e)}
@@ -199,7 +217,8 @@ pasos_handlers = {
     4.0: paso_4,
     5.0: paso_5,
     5.5: paso_5_5,
-    6.0: paso_6
+    6.0: paso_6,
+    7.0: paso_7_0
 
 }
 

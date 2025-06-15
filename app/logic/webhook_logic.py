@@ -3,8 +3,6 @@ from app.config import VERIFY_TOKEN, redis_client
 from app.models.redis_model import crear_usuario, actualizar_usuario, obtener_usuario, eliminar_usuario, verificar_usuario
 from app.services.message_handler import mensaje_bienvenida
 from app.logic.flow import manejar_flujo
-import redis
-import os
 
 
 
